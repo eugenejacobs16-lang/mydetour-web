@@ -1,0 +1,18 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Detour Logo Lockup</title>
+  <desc>Detour logo lockup with Compass D mark and Detour wordmark.</desc>
+  <g transform="translate(42 42) scale(0.54)">
+    <circle cx="256" cy="256" r="172" stroke="#1F4D42" stroke-width="28"/>
+    <path d="M256 42L274 91H238L256 42Z" fill="#C26D3A"/>
+    <path d="M256 470L238 421H274L256 470Z" fill="#C26D3A"/>
+    <path d="M42 256L91 238V274L42 256Z" fill="#C26D3A"/>
+    <path d="M470 256L421 274V238L470 256Z" fill="#C26D3A"/>
+    <path d="M184 142H250C318 142 368 191 368 256C368 321 318 370 250 370H184V142Z" fill="#1F4D42"/>
+    <path d="M226 184V328H250C293 328 326 297 326 256C326 215 293 184 250 184H226Z" fill="#F7F5F2"/>
+    <path d="M151 402L236 263L348 141L300 306L196 428L151 402Z" fill="#C26D3A"/>
+    <path d="M236 263L309 194L300 306L264 293L236 263Z" fill="#D8C3A5"/>
+    <path d="M190 377L229 314" stroke="#F7F5F2" stroke-width="12" stroke-linecap="round" opacity="0.78"/>
+  </g>
+  <text x="360" y="210" font-family="Georgia, 'Times New Roman', serif" font-size="138" font-weight="500" letter-spacing="-5" fill="#1F4D42">Detour</text>
+  <text x="370" y="276" font-family="Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="5" fill="#C26D3A">DISCOVER EXPERIENCES WORTH STOPPING FOR</text>
+</svg>
