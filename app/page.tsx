@@ -26,18 +26,21 @@ const featuredVenues = [
     name: "Boschendal",
     category: "Wine Farm",
     distance: "12.4 km away",
+    image: "/venues/boschendal.jpg",
     tags: ["Child Friendly", "Wine Tasting", "Outdoor"],
   },
   {
     name: "Spier",
     category: "Wine Farm",
     distance: "15.2 km away",
+    image: "/venues/spier.jpg",
     tags: ["Family", "Restaurant", "Experiences"],
   },
   {
     name: "Root44",
     category: "Lifestyle Market",
     distance: "18.7 km away",
+    image: "/venues/root44.jpg",
     tags: ["Food", "Family", "Weekend"],
   },
 ];
@@ -164,19 +167,17 @@ export default function Home() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {featuredVenues.map((venue, index) => (
+              {featuredVenues.map((venue) => (
                 <div
                   key={venue.name}
                   className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div
-                    className={`h-44 ${
-                      index === 0
-                        ? "bg-gradient-to-br from-[#D8C3A5] to-[#1F4D42]"
-                        : index === 1
-                        ? "bg-gradient-to-br from-[#6B7D4F] to-[#D8C3A5]"
-                        : "bg-gradient-to-br from-[#C26D3A] to-[#1F4D42]"
-                    }`}
+                  <Image
+                    src={venue.image}
+                    alt={venue.name}
+                    width={600}
+                    height={360}
+                    className="h-44 w-full object-cover"
                   />
 
                   <div className="p-6">
