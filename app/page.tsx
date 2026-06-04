@@ -10,6 +10,7 @@ import {
   Utensils,
   Wine,
 } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 const categories = [
   { icon: Wine, name: "Wine Farms" },
@@ -21,31 +22,38 @@ const categories = [
   { icon: Users, name: "Family" },
 ];
 
-const featuredVenues = [
-  {
-    name: "Boschendal",
-    category: "Wine Farm",
-    distance: "12.4 km away",
-    image: "/venues/boschendal.jpg",
-    tags: ["Child Friendly", "Wine Tasting", "Outdoor"],
-  },
-  {
-    name: "Spier",
-    category: "Wine Farm",
-    distance: "15.2 km away",
-    image: "/venues/spier.jpg",
-    tags: ["Family", "Restaurant", "Experiences"],
-  },
-  {
-    name: "Root44",
-    category: "Lifestyle Market",
-    distance: "18.7 km away",
-    image: "/venues/root44.jpg",
-    tags: ["Food", "Family", "Weekend"],
-  },
-];
+const imageBySlug: Record<string, string> = {
+  boschendal: "/venues/boschendal.jpg",
+  spier: "/venues/spier.jpg",
+  root44: "/venues/root44.jpg",
+  babylonstoren: "/venues/boschendal.jpg",
+};
 
-export default function Home() {
+type Venue = {
+  id: string;
+  name: string;
+  slug: string;
+  short_description: string | null;
+  city: string | null;
+};
+
+async function getVenues() {
+  const { data, error } = await supabase
+    .from("venues")
+    .select("id, name, slug, short_description, city")
+    .eq("active", true)
+    .order("name");
+
+  if (error) {
+    return [];
+  }
+
+  return (data || []) as Venue[];
+}
+
+export default async function Home() {
+  const venues = await getVenues();
+
   return (
     <main className="min-h-screen bg-[#F7F5F2] text-[#1E2A28]">
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur">
@@ -116,18 +124,15 @@ export default function Home() {
           </div>
 
           <div className="relative min-h-[420px] bg-gradient-to-br from-[#D8C3A5] via-[#6B7D4F] to-[#1F4D42]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.5),transparent_25%),radial-gradient(circle_at_80%_60%,rgba(194,109,58,0.35),transparent_28%)]" />
-
             <div className="absolute bottom-8 left-8 right-8 rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#C26D3A]">
-                Nearby Experience
+                Live Database
               </p>
               <h2 className="mt-2 text-3xl font-bold text-[#1F4D42]">
-                Wine farms, trails and family stops.
+                {venues.length} venues loaded.
               </h2>
               <p className="mt-2 text-gray-600">
-                Detour will recommend places based on your location and
-                preferences.
+                These experiences are now coming directly from Supabase.
               </p>
             </div>
           </div>
@@ -167,13 +172,13 @@ export default function Home() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {featuredVenues.map((venue) => (
+              {venues.map((venue) => (
                 <div
-                  key={venue.name}
+                  key={venue.id}
                   className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
                   <Image
-                    src={venue.image}
+                    src={imageBySlug[venue.slug] || "/venues/boschendal.jpg"}
                     alt={venue.name}
                     width={600}
                     height={360}
@@ -182,26 +187,19 @@ export default function Home() {
 
                   <div className="p-6">
                     <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
-                      {venue.category}
+                      {venue.city || "Experience"}
                     </div>
 
                     <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
 
                     <p className="mt-2 flex items-center gap-2 text-gray-600">
                       <MapPin size={16} className="text-[#C26D3A]" />
-                      {venue.distance}
+                      Distance coming soon
                     </p>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {venue.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-[#F7F5F2] px-3 py-1 text-sm text-[#1F4D42]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="mt-3 text-sm text-gray-600">
+                      {venue.short_description}
+                    </p>
 
                     <button className="mt-5 font-bold text-[#C26D3A]">
                       View Details →
