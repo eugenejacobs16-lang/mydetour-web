@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   Bike,
   Footprints,
@@ -21,37 +24,6 @@ const categories = [
   { icon: Users, name: "Family" },
 ];
 
-const featuredVenues = [
-  {
-    name: "Boschendal",
-    slug: "boschendal",
-    city: "Franschhoek",
-    short_description:
-      "Historic wine farm with restaurants, picnics, gardens and outdoor experiences.",
-  },
-  {
-    name: "Spier",
-    slug: "spier",
-    city: "Stellenbosch",
-    short_description:
-      "Wine farm with restaurants, family activities, gardens and experiences.",
-  },
-  {
-    name: "Root44",
-    slug: "root44",
-    city: "Stellenbosch",
-    short_description:
-      "Lifestyle market with food, drinks, family activities and weekend atmosphere.",
-  },
-  {
-    name: "Babylonstoren",
-    slug: "babylonstoren",
-    city: "Simondium",
-    short_description:
-      "Historic Cape farm with gardens, food, wine, accommodation and experiences.",
-  },
-];
-
 const imageBySlug: Record<string, string> = {
   boschendal: "/venues/boschendal.jpg",
   spier: "/venues/spier.jpg",
@@ -59,18 +31,53 @@ const imageBySlug: Record<string, string> = {
   babylonstoren: "/venues/boschendal.jpg",
 };
 
+type Venue = {
+  id: string;
+  name: string;
+  slug: string;
+  short_description: string | null;
+  city: string | null;
+};
+
 export default function Home() {
+  const [venues, setVenues] = useState<Venue[]>([]);
+
+  useEffect(() => {
+    async function loadVenues() {
+      const response = await fetch("/api/venues");
+      const data = await response.json();
+      setVenues(data);
+    }
+
+    loadVenues();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#F7F5F2] text-[#1E2A28]">
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Image src="/logo.svg" alt="Detour logo" width={150} height={44} priority />
+          <Image
+            src="/logo.svg"
+            alt="Detour logo"
+            width={150}
+            height={44}
+            priority
+          />
 
           <nav className="hidden items-center gap-8 md:flex">
-            <a href="#explore" className="font-medium hover:text-[#C26D3A]">Explore</a>
-            <a href="#categories" className="font-medium hover:text-[#C26D3A]">Categories</a>
-            <a href="#featured" className="font-medium hover:text-[#C26D3A]">Featured</a>
-            <a href="#ask" className="rounded-full bg-[#C26D3A] px-5 py-3 font-bold text-white">
+            <a href="#explore" className="font-medium hover:text-[#C26D3A]">
+              Explore
+            </a>
+            <a href="#categories" className="font-medium hover:text-[#C26D3A]">
+              Categories
+            </a>
+            <a href="#featured" className="font-medium hover:text-[#C26D3A]">
+              Featured
+            </a>
+            <a
+              href="#ask"
+              className="rounded-full bg-[#C26D3A] px-5 py-3 font-bold text-white"
+            >
               Ask Detour
             </a>
           </nav>
@@ -89,7 +96,8 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg text-white/80">
-              Discover wine farms, restaurants, padel venues, trails and family experiences near you.
+              Discover wine farms, restaurants, padel venues, trails and family
+              experiences near you.
             </p>
 
             <div className="mt-8 rounded-full bg-white p-3 shadow-xl">
@@ -116,13 +124,13 @@ export default function Home() {
           <div className="relative min-h-[420px] bg-gradient-to-br from-[#D8C3A5] via-[#6B7D4F] to-[#1F4D42]">
             <div className="absolute bottom-8 left-8 right-8 rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#C26D3A]">
-                Database Ready
+                Live Database
               </p>
               <h2 className="mt-2 text-3xl font-bold text-[#1F4D42]">
-                {featuredVenues.length} venues loaded.
+                {venues.length} venues loaded.
               </h2>
               <p className="mt-2 text-gray-600">
-                Supabase is connected locally. Live database rendering is next.
+                These experiences are coming through the Detour API route.
               </p>
             </div>
           </div>
@@ -136,8 +144,12 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
             {categories.map((category) => {
               const Icon = category.icon;
+
               return (
-                <div key={category.name} className="rounded-2xl bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <div
+                  key={category.name}
+                  className="rounded-2xl bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                >
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F7F5F2] text-[#C26D3A]">
                     <Icon size={24} />
                   </div>
@@ -158,8 +170,11 @@ export default function Home() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {featuredVenues.map((venue) => (
-                <div key={venue.slug} className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+              {venues.map((venue) => (
+                <div
+                  key={venue.id}
+                  className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                >
                   <Image
                     src={imageBySlug[venue.slug] || "/venues/boschendal.jpg"}
                     alt={venue.name}
@@ -170,7 +185,7 @@ export default function Home() {
 
                   <div className="p-6">
                     <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
-                      {venue.city}
+                      {venue.city || "Experience"}
                     </div>
 
                     <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
@@ -180,21 +195,35 @@ export default function Home() {
                       Distance coming soon
                     </p>
 
-                    <p className="mt-3 text-sm text-gray-600">{venue.short_description}</p>
+                    <p className="mt-3 text-sm text-gray-600">
+                      {venue.short_description}
+                    </p>
 
-                    <button className="mt-5 font-bold text-[#C26D3A]">View Details →</button>
+                    <button className="mt-5 font-bold text-[#C26D3A]">
+                      View Details →
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          <section id="ask" className="rounded-3xl bg-white p-6 shadow-sm lg:self-start">
+          <section
+            id="ask"
+            className="rounded-3xl bg-white p-6 shadow-sm lg:self-start"
+          >
             <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#C26D3A]">
               Ask Detour
             </p>
-            <h2 className="mt-2 text-2xl font-bold">Natural language discovery is coming.</h2>
-            <p className="mt-3 text-gray-600">Soon you’ll be able to ask questions like:</p>
+
+            <h2 className="mt-2 text-2xl font-bold">
+              Natural language discovery is coming.
+            </h2>
+
+            <p className="mt-3 text-gray-600">
+              Soon you’ll be able to ask questions like:
+            </p>
+
             <div className="mt-4 rounded-2xl bg-[#F7F5F2] p-4 text-gray-700">
               “Find a child-friendly wine farm within 20km that serves lunch.”
             </div>
