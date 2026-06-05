@@ -50,13 +50,16 @@ ${DETOUR_ATTRIBUTES.join(", ")}
 Return format:
 {
   "attributes": ["Wine Farm", "Child Friendly"],
-  "searchTerm": ""
+  "searchTerm": "",
+  "distanceKm": null
 }
 
 Rules:
 - Only use attributes from the available list.
 - If user mentions a venue name, put it in searchTerm.
 - If unsure, return an empty attributes array.
+- If the user mentions distance like "within 20km", return distanceKm as a number.
+- If no distance is mentioned, return distanceKm as null.
 `,
         },
         {
@@ -97,8 +100,12 @@ Rules:
   const searchTerm =
     typeof parsed.searchTerm === "string" ? parsed.searchTerm : "";
 
+    const distanceKm =
+  typeof parsed.distanceKm === "number" ? parsed.distanceKm : null;
+
   return NextResponse.json({
-    attributes,
-    searchTerm,
-  });
+  attributes,
+  searchTerm,
+  distanceKm,
+});
 }

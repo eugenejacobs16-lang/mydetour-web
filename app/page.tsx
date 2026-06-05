@@ -47,6 +47,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiDistanceKm, setAiDistanceKm] = useState<number | null>(null);
   const [userLocation, setUserLocation] = useState<{
   latitude: number;
   longitude: number;
@@ -124,9 +125,7 @@ function getUserLocation() {
   const results = venues.filter((venue) => {
     const matchesFilters =
       selectedFilters.length === 0 ||
-      selectedFilters.every((filter) =>
-        venue.attributes.includes(filter)
-      );
+      selectedFilters.every((filter) => venue.attributes.includes(filter));
 
     const searchableText = [
       venue.name,
@@ -157,8 +156,17 @@ function getUserLocation() {
         venue.longitude
       ),
     }))
+    .filter((venue) =>
+      aiDistanceKm ? (venue.distance ?? 9999) <= aiDistanceKm : true
+    )
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
-}, [venues, selectedFilters, searchTerm, userLocation]);
+}, [
+  venues,
+  selectedFilters,
+  searchTerm,
+  userLocation,
+  aiDistanceKm,
+]);
 
   function toggleFilter(filter: string) {
     setSelectedFilters((current) =>
@@ -171,6 +179,7 @@ function getUserLocation() {
   function resetSearch() {
     setSearchTerm("");
     setSelectedFilters([]);
+    setAiDistanceKm(null);
   }
 
   async function askDetour() {
@@ -196,6 +205,16 @@ function getUserLocation() {
     if (data.searchTerm) {
       setSearchTerm(data.searchTerm);
     }
+    if (typeof data.distanceKm === "number") {
+  setAiDistanceKm(data.distanceKm);
+
+  if (!userLocation) {
+    getUserLocation();
+  }
+} else {
+  setAiDistanceKm(null);
+}
+
   } catch (error) {
     alert("Ask Detour could not process the request.");
   } finally {
@@ -329,12 +348,7 @@ function getUserLocation() {
   {aiLoading ? "..." : "Go"}
 </button>
 
-                  <button
-                    disabled
-                    className="mr-1 rounded-full bg-white/20 p-3 text-white/80"
-                  >
-                    →
-                  </button>
+                  
                 </div>
               </div>
 
@@ -351,6 +365,9 @@ function getUserLocation() {
               {selectedFilters.length > 0 && (
                 <p>Filters: {selectedFilters.join(", ")}</p>
               )}
+              {aiDistanceKm && (
+  <p>Within {aiDistanceKm} km</p>
+)}
             </div>
           )}
         </div>
