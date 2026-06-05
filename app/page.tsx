@@ -45,6 +45,8 @@ export default function Home() {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{
   latitude: number;
   longitude: number;
@@ -171,6 +173,36 @@ function getUserLocation() {
     setSelectedFilters([]);
   }
 
+  async function askDetour() {
+  if (!aiQuery.trim()) return;
+
+  setAiLoading(true);
+
+  try {
+    const response = await fetch("/api/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: aiQuery }),
+    });
+
+    const data = await response.json();
+
+    if (Array.isArray(data.attributes)) {
+      setSelectedFilters(data.attributes);
+    }
+
+    if (data.searchTerm) {
+      setSearchTerm(data.searchTerm);
+    }
+  } catch (error) {
+    alert("Ask Detour could not process the request.");
+  } finally {
+    setAiLoading(false);
+  }
+}
+
   return (
     <main className="min-h-screen bg-[#F7F5F2] text-[#1E2A28]">
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur">
@@ -270,8 +302,7 @@ function getUserLocation() {
             <div>
               <p className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-[0.25em] text-[#C26D3A]">
                 <MessageCircle size={17} />
-                Ask Detour{" "}
-                <span className="text-[#D8C3A5]">(Coming Soon)</span>
+                Ask Detour
               </p>
 
               <div className="rounded-full border border-white/20 bg-white/10 p-3">
@@ -279,10 +310,24 @@ function getUserLocation() {
                   <MessageCircle className="ml-2 text-[#D8C3A5]" size={22} />
 
                   <input
-                    disabled
-                    className="w-full bg-transparent px-2 py-3 text-white/70 outline-none placeholder:text-white/65"
-                    placeholder="Ask in natural language..."
-                  />
+  value={aiQuery}
+  onChange={(event) => setAiQuery(event.target.value)}
+  onKeyDown={(event) => {
+    if (event.key === "Enter") {
+      askDetour();
+    }
+  }}
+  className="w-full bg-transparent px-2 py-3 text-white outline-none placeholder:text-white/65"
+  placeholder="Ask in natural language..."
+/>
+
+<button
+  onClick={askDetour}
+  disabled={aiLoading}
+  className="mr-1 rounded-full bg-[#C26D3A] px-5 py-3 font-bold text-white disabled:opacity-60"
+>
+  {aiLoading ? "..." : "Go"}
+</button>
 
                   <button
                     disabled
