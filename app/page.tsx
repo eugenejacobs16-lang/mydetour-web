@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { MapPin, Search } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
 
 const priorityFilters = [
   "Wine Farm",
@@ -46,24 +46,14 @@ export default function Home() {
 
   useEffect(() => {
     async function loadData() {
-      try {
-        const [venuesResponse, attributesResponse] = await Promise.all([
-          fetch("/api/venues"),
-          fetch("/api/attributes"),
-        ]);
+      const [venuesResponse, attributesResponse] = await Promise.all([
+        fetch("/api/venues"),
+        fetch("/api/attributes"),
+      ]);
 
-        const venuesData = await venuesResponse.json();
-        const attributesData = await attributesResponse.json();
-
-        setVenues(Array.isArray(venuesData) ? venuesData : []);
-        setAttributes(Array.isArray(attributesData) ? attributesData : []);
-      } catch (error) {
-        console.error("Load error:", error);
-        setVenues([]);
-        setAttributes([]);
-      } finally {
-        setLoading(false);
-      }
+      setVenues(await venuesResponse.json());
+      setAttributes(await attributesResponse.json());
+      setLoading(false);
     }
 
     loadData();
@@ -79,28 +69,28 @@ export default function Home() {
   }, [attributes]);
 
   const filteredVenues = useMemo(() => {
-  const search = searchTerm.trim().toLowerCase();
+    const search = searchTerm.trim().toLowerCase();
 
-  return venues.filter((venue) => {
-    const matchesFilters =
-      selectedFilters.length === 0 ||
-      selectedFilters.every((filter) => venue.attributes.includes(filter));
+    return venues.filter((venue) => {
+      const matchesFilters =
+        selectedFilters.length === 0 ||
+        selectedFilters.every((filter) => venue.attributes.includes(filter));
 
-    const searchableText = [
-      venue.name,
-      venue.city,
-      venue.short_description,
-      ...(venue.attributes || []),
-    ]
-      .join(" ")
-      .toLowerCase();
+      const searchableText = [
+        venue.name,
+        venue.city,
+        venue.short_description,
+        ...(venue.attributes || []),
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    const matchesSearch =
-      search.length === 0 || searchableText.includes(search);
+      const matchesSearch =
+        search.length === 0 || searchableText.includes(search);
 
-    return matchesFilters && matchesSearch;
-  });
-}, [venues, selectedFilters, searchTerm]);
+      return matchesFilters && matchesSearch;
+    });
+  }, [venues, selectedFilters, searchTerm]);
 
   function toggleFilter(filter: string) {
     setSelectedFilters((current) =>
@@ -110,17 +100,16 @@ export default function Home() {
     );
   }
 
+  function resetSearch() {
+    setSearchTerm("");
+    setSelectedFilters([]);
+  }
+
   return (
     <main className="min-h-screen bg-[#F7F5F2] text-[#1E2A28]">
       <header className="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Image
-            src="/logo.svg"
-            alt="Detour logo"
-            width={150}
-            height={44}
-            priority
-          />
+          <Image src="/logo.svg" alt="Detour logo" width={150} height={44} priority />
 
           <nav className="hidden items-center gap-8 md:flex">
             <a href="#explore" className="font-medium hover:text-[#C26D3A]">
@@ -158,14 +147,33 @@ export default function Home() {
             <div className="mt-8 rounded-full bg-white p-3 shadow-xl">
               <div className="flex items-center gap-3">
                 <Search className="ml-2 text-[#C26D3A]" size={24} />
+
                 <input
-  value={searchTerm}
-  onChange={(event) => setSearchTerm(event.target.value)}
-  className="w-full bg-transparent px-2 py-3 text-[#1E2A28] outline-none"
-  placeholder="Search by venue, city or attribute..."
-/>
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  className="w-full bg-transparent px-2 py-3 text-[#1E2A28] outline-none"
+                  placeholder="Search by venue, city or attribute..."
+                />
+
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="mr-2 rounded-full bg-[#F7F5F2] p-2 text-[#1F4D42]"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
               </div>
             </div>
+
+            {(searchTerm || selectedFilters.length > 0) && (
+              <div className="mt-4 text-sm text-white/80">
+                {searchTerm && <p>Showing results for “{searchTerm}”</p>}
+                {selectedFilters.length > 0 && (
+                  <p>Filters: {selectedFilters.join(", ")}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="relative min-h-[420px] bg-gradient-to-br from-[#D8C3A5] via-[#6B7D4F] to-[#1F4D42]">
@@ -179,7 +187,7 @@ export default function Home() {
                   : `${filteredVenues.length} places found.`}
               </h2>
               <p className="mt-2 text-gray-600">
-                Filter places by what they offer using Detour attributes.
+                Search and filter places by what they offer.
               </p>
             </div>
           </div>
@@ -191,19 +199,19 @@ export default function Home() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#C26D3A]">
-                Filter by ...
+                Filter by Attribute
               </p>
               <h2 className="mt-2 text-2xl font-bold">
                 What are you looking for?
               </h2>
             </div>
 
-            {selectedFilters.length > 0 && (
+            {(selectedFilters.length > 0 || searchTerm) && (
               <button
-                onClick={() => setSelectedFilters([])}
+                onClick={resetSearch}
                 className="rounded-full border border-[#1F4D42] px-5 py-2 font-bold text-[#1F4D42]"
               >
-                Clear Filters
+                Reset Search
               </button>
             )}
           </div>
@@ -237,9 +245,26 @@ export default function Home() {
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-3xl font-bold">Discover Places</h2>
               <p className="font-bold text-[#C26D3A]">
-                {filteredVenues.length} places found
+                Showing {filteredVenues.length} of {venues.length}
               </p>
             </div>
+
+            {filteredVenues.length === 0 && !loading && (
+              <div className="rounded-3xl bg-white p-8 text-center shadow-sm">
+                <h3 className="text-2xl font-bold text-[#1F4D42]">
+                  No places found
+                </h3>
+                <p className="mt-3 text-gray-600">
+                  Try clearing your filters or searching for something else.
+                </p>
+                <button
+                  onClick={resetSearch}
+                  className="mt-5 rounded-full bg-[#C26D3A] px-6 py-3 font-bold text-white"
+                >
+                  Reset Search & Filters
+                </button>
+              </div>
+            )}
 
             <div className="grid gap-6 md:grid-cols-3">
               {filteredVenues.map((venue) => (
@@ -249,9 +274,7 @@ export default function Home() {
                   className="block cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#C26D3A]"
                 >
                   <Image
-                    src={
-                      imageBySlug[venue.slug] || "/venues/boschendal/hero.jpg"
-                    }
+                    src={imageBySlug[venue.slug] || "/venues/boschendal/hero.jpg"}
                     alt={venue.name}
                     width={600}
                     height={360}
