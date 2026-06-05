@@ -250,7 +250,7 @@ function getUserLocation() {
           <div className="grid gap-8 lg:grid-cols-[1fr_0.45fr] lg:items-start">
             <div>
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-                <h1 className="text-5xl font-bold leading-tight md:text-6xl">
+                <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
                   Find your next{" "}
                   <span className="text-[#D8C3A5]">detour.</span>
                 </h1>
@@ -444,7 +444,7 @@ function getUserLocation() {
             </div>
           )}
 
-          <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {filteredVenues.map((venue) => (
               <Link
                 key={venue.id}
@@ -461,7 +461,7 @@ function getUserLocation() {
                   className="h-44 w-full object-cover"
                 />
 
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
                     {venue.city || "Experience"}
                   </div>
