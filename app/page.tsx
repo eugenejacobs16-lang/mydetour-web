@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -185,43 +186,41 @@ export default function Home() {
 
             <div className="grid gap-6 md:grid-cols-3">
               {venues.map((venue) => (
-                <div
-                  key={venue.id}
-                  className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                >
-                  <Image
-                    src={imageBySlug[venue.slug] || "/venues/boschendal.jpg"}
-                    alt={venue.name}
-                    width={600}
-                    height={360}
-                    className="h-44 w-full object-cover"
-                  />
+  <Link
+    key={venue.id}
+    href={`/venues/${venue.slug}`}
+    className="block cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#C26D3A]"
+  >
+    <Image
+      src={imageBySlug[venue.slug] || "/venues/boschendal.jpg"}
+      alt={venue.name}
+      width={600}
+      height={360}
+      className="h-44 w-full object-cover"
+    />
 
-                  <div className="p-6">
-                    <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
-                      {venue.city || "Experience"}
-                    </div>
+    <div className="p-6">
+      <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
+        {venue.city || "Experience"}
+      </div>
 
-                    <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
+      <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
 
-                    <p className="mt-2 flex items-center gap-2 text-gray-600">
-                      <MapPin size={16} className="text-[#C26D3A]" />
-                      Distance coming soon
-                    </p>
+      <p className="mt-2 flex items-center gap-2 text-gray-600">
+        <MapPin size={16} className="text-[#C26D3A]" />
+        Distance coming soon
+      </p>
 
-                    <p className="mt-3 text-sm text-gray-600">
-                      {venue.short_description}
-                    </p>
+      <p className="mt-3 text-sm text-gray-600">
+        {venue.short_description}
+      </p>
 
-                    <a
-                      href={`/venues/${venue.slug}`}
-                      className="mt-5 inline-block font-bold text-[#C26D3A]"
-                    >
-                      View Details →
-                    </a>
-                  </div>
-                </div>
-              ))}
+      <div className="mt-5 font-bold text-[#C26D3A]">
+        View Details →
+      </div>
+    </div>
+  </Link>
+))}
             </div>
           </section>
 
