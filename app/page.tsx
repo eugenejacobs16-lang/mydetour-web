@@ -3,27 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bike,
-  Footprints,
-  MapPin,
-  Mountain,
-  Search,
-  Trophy,
-  Users,
-  Utensils,
-  Wine,
-} from "lucide-react";
-
-const categories = [
-  { icon: Wine, name: "Wine Farms" },
-  { icon: Utensils, name: "Restaurants" },
-  { icon: Footprints, name: "Running" },
-  { icon: Mountain, name: "Hiking" },
-  { icon: Bike, name: "MTB" },
-  { icon: Trophy, name: "Padel" },
-  { icon: Users, name: "Family" },
-];
+import { MapPin, Search } from "lucide-react";
 
 const priorityFilters = [
   "Wine Farm",
@@ -49,7 +29,7 @@ type Venue = {
   slug: string;
   short_description: string | null;
   city: string | null;
-  attributes?: string[];
+  attributes: string[];
 };
 
 type Attribute = {
@@ -98,12 +78,10 @@ export default function Home() {
   }, [attributes]);
 
   const filteredVenues = useMemo(() => {
-    if (selectedFilters.length === 0) {
-      return venues;
-    }
+    if (selectedFilters.length === 0) return venues;
 
     return venues.filter((venue) =>
-      selectedFilters.every((filter) => venue.attributes?.includes(filter))
+      selectedFilters.every((filter) => venue.attributes.includes(filter))
     );
   }, [venues, selectedFilters]);
 
@@ -131,11 +109,8 @@ export default function Home() {
             <a href="#explore" className="font-medium hover:text-[#C26D3A]">
               Explore
             </a>
-            <a href="#categories" className="font-medium hover:text-[#C26D3A]">
-              Categories
-            </a>
-            <a href="#featured" className="font-medium hover:text-[#C26D3A]">
-              Featured
+            <a href="#places" className="font-medium hover:text-[#C26D3A]">
+              Places
             </a>
             <a
               href="#ask"
@@ -172,16 +147,6 @@ export default function Home() {
                 />
               </div>
             </div>
-
-            <div className="mt-6 flex flex-col gap-4 sm:flex-row">
-              <button className="rounded-full bg-[#C26D3A] px-8 py-4 font-bold text-white">
-                Use My Location
-              </button>
-
-              <button className="rounded-full border border-white/30 px-8 py-4 font-bold text-white">
-                Ask Detour
-              </button>
-            </div>
           </div>
 
           <div className="relative min-h-[420px] bg-gradient-to-br from-[#D8C3A5] via-[#6B7D4F] to-[#1F4D42]">
@@ -192,36 +157,12 @@ export default function Home() {
               <h2 className="mt-2 text-3xl font-bold text-[#1F4D42]">
                 {loading
                   ? "Loading venues..."
-                  : `${filteredVenues.length} venues found.`}
+                  : `${filteredVenues.length} places found.`}
               </h2>
               <p className="mt-2 text-gray-600">
-                Filter venues by what they offer using Detour attributes.
+                Filter places by what they offer using Detour attributes.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="categories" className="px-6 pb-10">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="mb-6 text-3xl font-bold">Explore Categories</h2>
-
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
-            {categories.map((category) => {
-              const Icon = category.icon;
-
-              return (
-                <div
-                  key={category.name}
-                  className="rounded-2xl bg-white p-5 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                >
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#F7F5F2] text-[#C26D3A]">
-                    <Icon size={24} />
-                  </div>
-                  <div className="font-semibold">{category.name}</div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </section>
@@ -271,13 +212,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-6 pb-10">
+      <section id="places" className="px-6 pb-10">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_0.45fr]">
-          <section id="featured">
+          <section>
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-3xl font-bold">Featured Experiences</h2>
+              <h2 className="text-3xl font-bold">Discover Places</h2>
               <p className="font-bold text-[#C26D3A]">
-                {filteredVenues.length} results
+                {filteredVenues.length} places found
               </p>
             </div>
 
@@ -289,7 +230,9 @@ export default function Home() {
                   className="block cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#C26D3A]"
                 >
                   <Image
-                    src={imageBySlug[venue.slug] || "/venues/boschendal/hero.jpg"}
+                    src={
+                      imageBySlug[venue.slug] || "/venues/boschendal/hero.jpg"
+                    }
                     alt={venue.name}
                     width={600}
                     height={360}
@@ -313,7 +256,7 @@ export default function Home() {
                     </p>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {venue.attributes?.slice(0, 3).map((attribute) => (
+                      {venue.attributes.slice(0, 3).map((attribute) => (
                         <span
                           key={attribute}
                           className="rounded-full bg-[#F7F5F2] px-3 py-1 text-sm text-[#1F4D42]"
