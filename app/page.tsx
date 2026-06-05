@@ -29,7 +29,10 @@ type Venue = {
   slug: string;
   short_description: string | null;
   city: string | null;
+  latitude: number;
+  longitude: number;
   attributes: string[];
+  distance?: number;
 };
 
 type Attribute = {
@@ -42,6 +45,10 @@ export default function Home() {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userLocation, setUserLocation] = useState<{
+  latitude: number;
+  longitude: number;
+} | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,6 +66,45 @@ export default function Home() {
     loadData();
   }, []);
 
+  function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  const R = 6371;
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function getUserLocation() {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      setUserLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+    },
+    () => {
+      setUserLocation({
+        latitude: -33.9249,
+        longitude: 18.4241,
+      });
+    }
+  );
+}
   const visibleFilters = useMemo(() => {
     return attributes
       .filter((attribute) => priorityFilters.includes(attribute.name))
@@ -69,28 +115,46 @@ export default function Home() {
   }, [attributes]);
 
   const filteredVenues = useMemo(() => {
-    const search = searchTerm.trim().toLowerCase();
+  const search = searchTerm.trim().toLowerCase();
 
-    return venues.filter((venue) => {
-      const matchesFilters =
-        selectedFilters.length === 0 ||
-        selectedFilters.every((filter) => venue.attributes.includes(filter));
+  const results = venues.filter((venue) => {
+    const matchesFilters =
+      selectedFilters.length === 0 ||
+      selectedFilters.every((filter) =>
+        venue.attributes.includes(filter)
+      );
 
-      const searchableText = [
-        venue.name,
-        venue.city,
-        venue.short_description,
-        ...(venue.attributes || []),
-      ]
-        .join(" ")
-        .toLowerCase();
+    const searchableText = [
+      venue.name,
+      venue.city,
+      venue.short_description,
+      ...(venue.attributes || []),
+    ]
+      .join(" ")
+      .toLowerCase();
 
-      const matchesSearch =
-        search.length === 0 || searchableText.includes(search);
+    const matchesSearch =
+      search.length === 0 || searchableText.includes(search);
 
-      return matchesFilters && matchesSearch;
-    });
-  }, [venues, selectedFilters, searchTerm]);
+    return matchesFilters && matchesSearch;
+  });
+
+  if (!userLocation) {
+    return results;
+  }
+
+  return results
+    .map((venue) => ({
+      ...venue,
+      distance: calculateDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        venue.latitude,
+        venue.longitude
+      ),
+    }))
+    .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+}, [venues, selectedFilters, searchTerm, userLocation]);
 
   function toggleFilter(filter: string) {
     setSelectedFilters((current) =>
@@ -159,6 +223,12 @@ export default function Home() {
               <p className="mt-2 text-white/75">
                 Search and filter places by what they offer.
               </p>
+              <button
+  onClick={getUserLocation}
+  className="mt-4 rounded-full bg-[#C26D3A] px-5 py-3 font-bold text-white"
+>
+  {userLocation ? "Location Enabled" : "Use My Location"}
+</button>
             </div>
           </div>
 
@@ -336,7 +406,9 @@ export default function Home() {
 
                   <p className="mt-2 flex items-center gap-2 text-gray-600">
                     <MapPin size={16} className="text-[#C26D3A]" />
-                    Distance coming soon
+                    {venue.distance
+  ? `${venue.distance.toFixed(1)} km away`
+  : "Enable location"}
                   </p>
 
                   <p className="mt-3 text-sm text-gray-600">
