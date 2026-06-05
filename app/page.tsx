@@ -41,12 +41,26 @@ type Venue = {
 
 export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadVenues() {
-      const response = await fetch("/api/venues");
-      const data = await response.json();
-      setVenues(data);
+      try {
+        const response = await fetch("/api/venues");
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setVenues(data);
+        } else {
+          console.error("Unexpected venues response:", data);
+          setVenues([]);
+        }
+      } catch (error) {
+        console.error("Venue load error:", error);
+        setVenues([]);
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadVenues();
@@ -127,7 +141,7 @@ export default function Home() {
                 Live Database
               </p>
               <h2 className="mt-2 text-3xl font-bold text-[#1F4D42]">
-                {venues.length} venues loaded.
+                {loading ? "Loading venues..." : `${venues.length} venues loaded.`}
               </h2>
               <p className="mt-2 text-gray-600">
                 These experiences are coming through the Detour API route.
@@ -199,9 +213,12 @@ export default function Home() {
                       {venue.short_description}
                     </p>
 
-                    <button className="mt-5 font-bold text-[#C26D3A]">
+                    <a
+                      href={`/venues/${venue.slug}`}
+                      className="mt-5 inline-block font-bold text-[#C26D3A]"
+                    >
                       View Details →
-                    </button>
+                    </a>
                   </div>
                 </div>
               ))}
