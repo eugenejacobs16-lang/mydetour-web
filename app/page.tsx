@@ -98,11 +98,13 @@ function getUserLocation() {
       });
     },
     () => {
-      setUserLocation({
-        latitude: -33.9249,
-        longitude: 18.4241,
-      });
-    }
+  alert("Using Cape Town as a demo location.");
+  
+  setUserLocation({
+    latitude: -33.9249,
+    longitude: 18.4241,
+  });
+}
   );
 }
   const visibleFilters = useMemo(() => {
