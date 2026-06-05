@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bike,
   Footprints,
@@ -25,11 +25,22 @@ const categories = [
   { icon: Users, name: "Family" },
 ];
 
+const priorityFilters = [
+  "Wine Farm",
+  "Restaurant",
+  "Coffee Shop",
+  "Child Friendly",
+  "MTB Trail",
+  "Hiking Trail",
+  "Running Trail",
+  "Padel Courts",
+];
+
 const imageBySlug: Record<string, string> = {
-  boschendal: "/venues/boschendal.jpg",
-  spier: "/venues/spier.jpg",
-  root44: "/venues/root44.jpg",
-  babylonstoren: "/venues/boschendal.jpg",
+  boschendal: "/venues/boschendal/hero.jpg",
+  spier: "/venues/spier/hero.jpg",
+  root44: "/venues/root44/hero.jpg",
+  babylonstoren: "/venues/babylonstoren/hero.jpg",
 };
 
 type Venue = {
@@ -38,34 +49,71 @@ type Venue = {
   slug: string;
   short_description: string | null;
   city: string | null;
+  attributes?: string[];
+};
+
+type Attribute = {
+  id: string;
+  name: string;
 };
 
 export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadVenues() {
+    async function loadData() {
       try {
-        const response = await fetch("/api/venues");
-        const data = await response.json();
+        const [venuesResponse, attributesResponse] = await Promise.all([
+          fetch("/api/venues"),
+          fetch("/api/attributes"),
+        ]);
 
-        if (Array.isArray(data)) {
-          setVenues(data);
-        } else {
-          console.error("Unexpected venues response:", data);
-          setVenues([]);
-        }
+        const venuesData = await venuesResponse.json();
+        const attributesData = await attributesResponse.json();
+
+        setVenues(Array.isArray(venuesData) ? venuesData : []);
+        setAttributes(Array.isArray(attributesData) ? attributesData : []);
       } catch (error) {
-        console.error("Venue load error:", error);
+        console.error("Load error:", error);
         setVenues([]);
+        setAttributes([]);
       } finally {
         setLoading(false);
       }
     }
 
-    loadVenues();
+    loadData();
   }, []);
+
+  const visibleFilters = useMemo(() => {
+    return attributes
+      .filter((attribute) => priorityFilters.includes(attribute.name))
+      .sort(
+        (a, b) =>
+          priorityFilters.indexOf(a.name) - priorityFilters.indexOf(b.name)
+      );
+  }, [attributes]);
+
+  const filteredVenues = useMemo(() => {
+    if (selectedFilters.length === 0) {
+      return venues;
+    }
+
+    return venues.filter((venue) =>
+      selectedFilters.every((filter) => venue.attributes?.includes(filter))
+    );
+  }, [venues, selectedFilters]);
+
+  function toggleFilter(filter: string) {
+    setSelectedFilters((current) =>
+      current.includes(filter)
+        ? current.filter((item) => item !== filter)
+        : [...current, filter]
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#F7F5F2] text-[#1E2A28]">
@@ -139,13 +187,15 @@ export default function Home() {
           <div className="relative min-h-[420px] bg-gradient-to-br from-[#D8C3A5] via-[#6B7D4F] to-[#1F4D42]">
             <div className="absolute bottom-8 left-8 right-8 rounded-3xl bg-white/90 p-6 shadow-xl backdrop-blur">
               <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#C26D3A]">
-                Live Database
+                Live Discovery
               </p>
               <h2 className="mt-2 text-3xl font-bold text-[#1F4D42]">
-                {loading ? "Loading venues..." : `${venues.length} venues loaded.`}
+                {loading
+                  ? "Loading venues..."
+                  : `${filteredVenues.length} venues found.`}
               </h2>
               <p className="mt-2 text-gray-600">
-                These experiences are coming through the Detour API route.
+                Filter venues by what they offer using Detour attributes.
               </p>
             </div>
           </div>
@@ -176,51 +226,109 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="px-6 pb-8">
+        <div className="mx-auto max-w-7xl rounded-3xl bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#C26D3A]">
+                Filter by Attribute
+              </p>
+              <h2 className="mt-2 text-2xl font-bold">
+                What are you looking for?
+              </h2>
+            </div>
+
+            {selectedFilters.length > 0 && (
+              <button
+                onClick={() => setSelectedFilters([])}
+                className="rounded-full border border-[#1F4D42] px-5 py-2 font-bold text-[#1F4D42]"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {visibleFilters.map((attribute) => {
+              const selected = selectedFilters.includes(attribute.name);
+
+              return (
+                <button
+                  key={attribute.id}
+                  onClick={() => toggleFilter(attribute.name)}
+                  className={`rounded-full px-5 py-3 text-sm font-bold transition ${
+                    selected
+                      ? "bg-[#1F4D42] text-white"
+                      : "bg-[#F7F5F2] text-[#1F4D42] hover:bg-[#D8C3A5]"
+                  }`}
+                >
+                  {selected ? "✓ " : ""}
+                  {attribute.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 pb-10">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_0.45fr]">
           <section id="featured">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-3xl font-bold">Featured Experiences</h2>
-              <button className="font-bold text-[#C26D3A]">View all →</button>
+              <p className="font-bold text-[#C26D3A]">
+                {filteredVenues.length} results
+              </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
-              {venues.map((venue) => (
-  <Link
-    key={venue.id}
-    href={`/venues/${venue.slug}`}
-    className="block cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#C26D3A]"
-  >
-    <Image
-      src={imageBySlug[venue.slug] || "/venues/boschendal.jpg"}
-      alt={venue.name}
-      width={600}
-      height={360}
-      className="h-44 w-full object-cover"
-    />
+              {filteredVenues.map((venue) => (
+                <Link
+                  key={venue.id}
+                  href={`/venues/${venue.slug}`}
+                  className="block cursor-pointer overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-[#C26D3A]"
+                >
+                  <Image
+                    src={imageBySlug[venue.slug] || "/venues/boschendal/hero.jpg"}
+                    alt={venue.name}
+                    width={600}
+                    height={360}
+                    className="h-44 w-full object-cover"
+                  />
 
-    <div className="p-6">
-      <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
-        {venue.city || "Experience"}
-      </div>
+                  <div className="p-6">
+                    <div className="text-sm font-bold uppercase tracking-wider text-[#C26D3A]">
+                      {venue.city || "Experience"}
+                    </div>
 
-      <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
+                    <h3 className="mt-2 text-2xl font-bold">{venue.name}</h3>
 
-      <p className="mt-2 flex items-center gap-2 text-gray-600">
-        <MapPin size={16} className="text-[#C26D3A]" />
-        Distance coming soon
-      </p>
+                    <p className="mt-2 flex items-center gap-2 text-gray-600">
+                      <MapPin size={16} className="text-[#C26D3A]" />
+                      Distance coming soon
+                    </p>
 
-      <p className="mt-3 text-sm text-gray-600">
-        {venue.short_description}
-      </p>
+                    <p className="mt-3 text-sm text-gray-600">
+                      {venue.short_description}
+                    </p>
 
-      <div className="mt-5 font-bold text-[#C26D3A]">
-        View Details →
-      </div>
-    </div>
-  </Link>
-))}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {venue.attributes?.slice(0, 3).map((attribute) => (
+                        <span
+                          key={attribute}
+                          className="rounded-full bg-[#F7F5F2] px-3 py-1 text-sm text-[#1F4D42]"
+                        >
+                          {attribute}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mt-5 font-bold text-[#C26D3A]">
+                      View Details →
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </section>
 
