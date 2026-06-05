@@ -41,6 +41,7 @@ export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,12 +79,28 @@ export default function Home() {
   }, [attributes]);
 
   const filteredVenues = useMemo(() => {
-    if (selectedFilters.length === 0) return venues;
+  const search = searchTerm.trim().toLowerCase();
 
-    return venues.filter((venue) =>
-      selectedFilters.every((filter) => venue.attributes.includes(filter))
-    );
-  }, [venues, selectedFilters]);
+  return venues.filter((venue) => {
+    const matchesFilters =
+      selectedFilters.length === 0 ||
+      selectedFilters.every((filter) => venue.attributes.includes(filter));
+
+    const searchableText = [
+      venue.name,
+      venue.city,
+      venue.short_description,
+      ...(venue.attributes || []),
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const matchesSearch =
+      search.length === 0 || searchableText.includes(search);
+
+    return matchesFilters && matchesSearch;
+  });
+}, [venues, selectedFilters, searchTerm]);
 
   function toggleFilter(filter: string) {
     setSelectedFilters((current) =>
@@ -142,9 +159,11 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <Search className="ml-2 text-[#C26D3A]" size={24} />
                 <input
-                  className="w-full bg-transparent px-2 py-3 text-[#1E2A28] outline-none"
-                  placeholder="Find a child-friendly wine farm near me..."
-                />
+  value={searchTerm}
+  onChange={(event) => setSearchTerm(event.target.value)}
+  className="w-full bg-transparent px-2 py-3 text-[#1E2A28] outline-none"
+  placeholder="Search by venue, city or attribute..."
+/>
               </div>
             </div>
           </div>
@@ -172,7 +191,7 @@ export default function Home() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#C26D3A]">
-                Filter by Attribute
+                Filter by ...
               </p>
               <h2 className="mt-2 text-2xl font-bold">
                 What are you looking for?
